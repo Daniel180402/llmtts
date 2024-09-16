@@ -1,44 +1,42 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import pyttsx3
+from gtts import gTTS
+import os
+
+# Enable TF32 in PyTorch
+torch.backends.cuda.matmul.allow_tf32 = True
+
+def speak_text(text, lang='it'):
+    """Convert the entire text to speech."""
+    tts = gTTS(text=text, lang=lang)
+    tts.save("response_full.mp3")
+    
+    # Use "start" for Windows to play the audio
+    os.system("start response_full.mp3")  
+    
+    # For macOS, use "afplay"
+    # os.system("afplay response_full.mp3")
 
 def main():
-    # Initialize TTS engine
-    engine = pyttsx3.init()
-
     # Prompt for Hugging Face access token
     token = input("Please enter your Hugging Face access token: ").strip()
 
     # Set the model name
     model_name = 'google/gemma-2-9b-it'
 
-    # Load the tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    # GPU
-    # model = AutoModelForCausalLM.from_pretrained(
-    #     model_name,
-    #     device_map="auto",          # Automatically allocate the model across available devices
-    #     torch_dtype=torch.bfloat16, # Use bfloat16 precision as per the model's requirements
-    # )
-    # CPU
+    # Load the tokenizer with token authentication
+    tokenizer = AutoTokenizer.from_pretrained(model_name, token=token)
+
+    # Determine the appropriate device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Load the model with GPU or CPU support
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        device_map="auto",
-        torch_dtype=torch.float32,  # Change to float32 if bfloat16 is unsupported
+        device_map="auto",  # Automatically allocate the model across available devices
+        torch_dtype=torch.float16 if device.type == 'cuda' else torch.float32,  # Use float16 for GPU, float32 for CPU
+        token=token  # Use the correct token argument
     )
-
-    # Move model to the appropriate device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
-    # Set the TTS voice to Italian if available
-    voices = engine.getProperty('voices')
-    for voice in voices:
-        if 'it' in voice.languages or 'italian' in voice.name.lower():
-            engine.setProperty('voice', voice.id)
-            break
-    else:
-        print("Italian voice not found. Using default voice.")
 
     print("You can start chatting with the model now (type 'exit' to quit)\n")
 
@@ -63,7 +61,7 @@ def main():
         # Generate the response
         outputs = model.generate(
             **inputs,
-            max_new_tokens=256,
+            max_new_tokens=512,  # Increase to generate a longer response
             do_sample=True,
             top_p=0.95,
             temperature=0.7,
@@ -74,15 +72,15 @@ def main():
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         # Extract the assistant's reply
-        # Remove the input prompt to isolate the model's response
         input_length = inputs['input_ids'].shape[1]
         assistant_reply_ids = outputs[0][input_length:]
         assistant_reply = tokenizer.decode(assistant_reply_ids, skip_special_tokens=True).strip()
 
-        # Print and speak the response
+        # Print the complete response
         print("Assistant:", assistant_reply, "\n")
-        engine.say(assistant_reply)
-        engine.runAndWait()
+
+        # Convert the complete response to speech using gTTS
+        speak_text(assistant_reply)
 
 if __name__ == '__main__':
     main()
