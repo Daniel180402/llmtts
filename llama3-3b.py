@@ -19,8 +19,8 @@ def main():
     # Prompt for Hugging Face access token
     token = input("Please enter your Hugging Face access token: ").strip()
 
-    # Model name for Gemma-2-9B
-    model_name = 'google/gemma-2-9b-it'
+    # Model name for Llama-3.2-3B
+    model_name = 'meta-llama/Llama-3.2-3B'
 
     # Load the tokenizer using the Hugging Face token
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=token)
@@ -28,10 +28,10 @@ def main():
     # Set the device (use GPU if available)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load the model on the device, with float16 for efficient GPU usage
+    # Load the model on the device, with bfloat16 for efficient GPU usage
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float16 if device.type == 'cuda' else torch.float32,  # Use float16 for GPU, float32 for CPU
+        torch_dtype=torch.bfloat16 if device.type == 'cuda' else torch.float32,  # Use bfloat16 for GPU, float32 for CPU
         device_map="auto",  # Auto device allocation
         use_auth_token=token  # Use Hugging Face token for authentication
     )
