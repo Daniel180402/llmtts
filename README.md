@@ -15,7 +15,12 @@ The same loop (*prompt, generate, speak*) is implemented against different model
 different hardware backends and two different TTS engines, so they can be compared on
 what actually mattered for the target audience: fluent Italian, answers short enough to
 hold a child's attention, and generation fast enough on the hardware at hand to feel like
-a conversation. The Unity side of the experience lives outside this repository.
+a conversation.
+
+What these prototypes led to lives in
+[unity-voice-agent](https://github.com/Daniel180402/unity-voice-agent): a local server
+wrapping llama3, and the Unity C# layer that records a child's voice and plays the
+character's reply back inside the scene.
 
 ## The variants
 
