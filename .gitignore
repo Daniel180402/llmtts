@@ -1,0 +1,26 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Generated speech output
+*.mp3
+
+# Hugging Face / model caches
+.cache/
+*.safetensors
+*.bin
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS cruft
+.DS_Store
+Thumbs.db
